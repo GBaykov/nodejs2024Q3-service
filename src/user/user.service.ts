@@ -27,7 +27,7 @@ export class UserService {
 
   async findAll() {
     const users = await DB.users;
-    return users;
+    return users.map((user) => User.toResponce(user));
   }
 
   async findOne(id: string) {
@@ -38,7 +38,7 @@ export class UserService {
     if (!user) {
       throw new NotFoundException();
     }
-    return user;
+    return User.toResponce(user);
   }
 
   async update(id: string, updatePasswordDto: UpdatePasswordDto) {
