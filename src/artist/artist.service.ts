@@ -1,26 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { Artist } from './entities/artist.entity';
+import { v4 as uuid } from 'uuid';
+import { DB } from 'src/database/db';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class ArtistService {
-  create(createArtistDto: CreateArtistDto) {
-    return 'This action adds a new artist';
+  async create(createArtistDto: CreateArtistDto) {
+    if (!createArtistDto.grammy || !createArtistDto.name) {
+      throw new BadRequestException();
+    }
+    const artist: Artist = { ...createArtistDto, id: uuid() };
+    await DB.artists.push(artist);
+    return artist;
   }
 
-  findAll() {
-    return `This action returns all artist`;
+  async findAll() {
+    const artists = await DB.artists;
+    return artists;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} artist`;
+  async findOne(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const artist = await DB.artists.find((artist) => artist.id === id);
+    if (!artist) {
+      throw new NotFoundException();
+    }
+    return artist;
   }
 
-  update(id: number, updateArtistDto: UpdateArtistDto) {
-    return `This action updates a #${id} artist`;
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
+    let artistIndex;
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const artist = await DB.artists.find((artist, index) => {
+      artistIndex = index;
+      return artist.id === id;
+    });
+    if (!artist) {
+      throw new NotFoundException();
+    }
+    const newArtist: Artist = { ...artist, ...updateArtistDto };
+    await DB.artists.splice(artistIndex, 1, newArtist);
+    return newArtist;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} artist`;
+  async remove(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const index = await DB.artists.findIndex((artist) => artist.id === id);
+    if (index === -1) {
+      throw new NotFoundException();
+    }
+    await DB.users.splice(index, 1);
   }
 }

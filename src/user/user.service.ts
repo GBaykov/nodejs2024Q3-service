@@ -14,6 +14,9 @@ import { User } from './entities/user.entity';
 @Injectable()
 export class UserService {
   async create(createUserDto: CreateUserDto) {
+    if (!createUserDto.login || !createUserDto.password) {
+      throw new BadRequestException();
+    }
     const user: User = {
       ...createUserDto,
       id: uuid(),
