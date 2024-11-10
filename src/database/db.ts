@@ -9,7 +9,7 @@ export type DB_Type = {
   artists: Artist[];
   albums: Album[];
   tracks: Track[];
-  favs: Fav[];
+  favs: Fav;
 };
 
 export const DB: DB_Type = {
@@ -17,5 +17,5 @@ export const DB: DB_Type = {
   artists: [],
   albums: [],
   tracks: [],
-  favs: [],
+  favs: null,
 };
