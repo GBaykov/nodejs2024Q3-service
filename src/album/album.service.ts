@@ -11,7 +11,6 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 import { DB } from 'src/database/db';
 import { Album } from './entities/album.entity';
 import { isUUID } from 'class-validator';
-import { Track } from 'src/track/entities/track.entity';
 import { TrackService } from 'src/track/track.service';
 import { FavsService } from 'src/favs/favs.service';
 

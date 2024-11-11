@@ -1,6 +1,3 @@
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdatePasswordDto } from '../dto/update-user.dto';
-
 export class User {
   id: string; // uuid v4
   login: string;

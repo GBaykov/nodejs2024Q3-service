@@ -11,8 +11,7 @@ import { Artist } from './entities/artist.entity';
 import { v4 as uuid } from 'uuid';
 import { DB } from 'src/database/db';
 import { isUUID } from 'class-validator';
-import { Track } from 'src/track/entities/track.entity';
-import { Album } from 'src/album/entities/album.entity';
+
 import { FavsService } from 'src/favs/favs.service';
 import { TrackService } from 'src/track/track.service';
 import { AlbumService } from 'src/album/album.service';

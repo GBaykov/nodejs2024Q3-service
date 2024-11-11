@@ -6,23 +6,12 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { CreateFavDto } from './dto/create-fav.dto';
-import { UpdateFavDto } from './dto/update-fav.dto';
-import { v4 as uuid } from 'uuid';
+
 import { DB } from 'src/database/db';
 import { isUUID } from 'class-validator';
-import { Artist } from 'src/artist/entities/artist.entity';
 import { ArtistService } from 'src/artist/artist.service';
 import { AlbumService } from 'src/album/album.service';
 import { TrackService } from 'src/track/track.service';
-import { Album } from 'src/album/entities/album.entity';
-import { Track } from 'src/track/entities/track.entity';
-
-interface FavoritesResponse {
-  artists: Artist[];
-  albums: Album[];
-  tracks: Track[];
-}
 
 @Injectable()
 export class FavsService {
@@ -44,7 +33,7 @@ export class FavsService {
 
     const favs = await DB.favs;
 
-    for (let key in favs) {
+    for (const key in favs) {
       if (favs[key].length > 0) {
         for (let i = 0; i < favs.artists.length; i++) {
           const artist = await this.artistService.findOne(favs.artists[i]);
@@ -70,11 +59,10 @@ export class FavsService {
   }
 
   async createArtist(id: string) {
-    // if (!isUUID(id)) {
-    //   throw new BadRequestException();
-    // }
-    // const artist = await this.artistService.findOne(id);
-    const artist = await this.artistService.findOne(id);
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const artist = await DB.artists.find((item) => item.id === id);
     if (!artist) {
       throw new UnprocessableEntityException();
     }
@@ -87,9 +75,9 @@ export class FavsService {
   }
 
   async removeArtist(id: string) {
-    // if (!isUUID(id)) {
-    //   throw new BadRequestException();
-    // }
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
     const index = await DB.favs.artists.findIndex(
       (artistId) => artistId === id,
     );
@@ -105,14 +93,14 @@ export class FavsService {
   }
 
   async createTrack(id: string) {
-    // if (!isUUID(id)) {
-    //   throw new BadRequestException();
-    // }
-    const track = await this.trackService.findOne(id);
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const track = await DB.tracks.find((item) => item.id === id);
     if (!track) {
       throw new UnprocessableEntityException();
     }
-    if (DB.favs.tracks.includes(id)) {
+    if (!DB.favs.tracks.includes(id)) {
       await DB.favs.tracks.push(id);
       return track;
     } else {
@@ -121,9 +109,9 @@ export class FavsService {
   }
 
   async removeTrack(id: string) {
-    // if (!isUUID(id)) {
-    //   throw new BadRequestException();
-    // }
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
     const index = await DB.favs.tracks.findIndex((trackId) => trackId === id);
     if (index === -1) {
       throw new NotFoundException();
@@ -137,11 +125,10 @@ export class FavsService {
   }
 
   async createAlbum(id: string) {
-    // if (!isUUID(id)) {
-    //   throw new BadRequestException();
-    // }
-    const album = await this.albumService.findOne(id);
-    // const album = await DB.albums.find((item) => item.id === id);
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const album = await DB.albums.find((item) => item.id === id);
     if (!album) {
       throw new UnprocessableEntityException();
     }
@@ -154,9 +141,9 @@ export class FavsService {
   }
 
   async removeAlbum(id: string) {
-    // if (!isUUID(id)) {
-    //   throw new BadRequestException();
-    // }
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
     const index = await DB.favs.albums.findIndex((albumId) => albumId === id);
     if (index === -1) {
       throw new NotFoundException();
