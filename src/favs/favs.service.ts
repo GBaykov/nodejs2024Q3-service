@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -25,9 +27,12 @@ interface FavoritesResponse {
 @Injectable()
 export class FavsService {
   constructor(
-    private readonly artistService: ArtistService,
-    private readonly albumService: AlbumService,
-    private readonly trackService: TrackService,
+    @Inject(forwardRef(() => ArtistService))
+    private artistService: ArtistService,
+    @Inject(forwardRef(() => AlbumService))
+    private albumService: AlbumService,
+    @Inject(forwardRef(() => TrackService))
+    private trackService: TrackService,
   ) {}
 
   async findAll() {
@@ -39,18 +44,30 @@ export class FavsService {
 
     const favs = await DB.favs;
 
-    for (let i = 0; i < favs.artists.length; i++) {
-      const artist = await this.artistService.findOne(favs.artists[i]);
-      resonse.artists.push(artist);
-    }
-
-    for (let i = 0; i < favs.albums.length; i++) {
-      const album = await this.albumService.findOne(favs.albums[i]);
-      resonse.albums.push(album);
-    }
-    for (let i = 0; i < favs.tracks.length; i++) {
-      const track = await this.trackService.findOne(favs.tracks[i]);
-      resonse.tracks.push(track);
+    for (let key in favs) {
+      if (favs[key].length > 0) {
+        for (let i = 0; i < favs.artists.length; i++) {
+          const artist = await this.artistService.findOne(favs.artists[i]);
+          // const artist = await DB.artists.find(
+          //   (item) => item.id === favs.artists[i],
+          // );
+          resonse.artists.push(artist);
+        }
+        for (let i = 0; i < favs.albums.length; i++) {
+          const album = await this.albumService.findOne(favs.albums[i]);
+          // const album = await DB.albums.find(
+          //   (item) => item.id === favs.albums[i],
+          // );
+          resonse.albums.push(album);
+        }
+        for (let i = 0; i < favs.tracks.length; i++) {
+          const track = await this.trackService.findOne(favs.tracks[i]);
+          // const track = await DB.tracks.find(
+          //   (item) => item.id === favs.tracks[i],
+          // );
+          resonse.tracks.push(track);
+        }
+      }
     }
 
     return resonse;
@@ -60,20 +77,26 @@ export class FavsService {
     return `This action returns a #${id} fav`;
   }
 
-  // async update(id: number, updateFavDto: UpdateFavDto) {
-  //   return `This action updates a #${id} fav`;
-  // }
+  async findArtist(id: string) {
+    const artist = await DB.favs.artists.find((item) => item === id);
+    return artist;
+  }
 
   async createArtist(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException();
     }
+    // const artist = await this.artistService.findOne(id);
     const artist = await this.artistService.findOne(id);
     if (!artist) {
       throw new UnprocessableEntityException();
     }
-    await DB.favs.artists[id];
-    return `Id of Artist #${id} has been added to favs`;
+    if (DB.favs.artists.find((item) => item === id)) {
+      return;
+    } else {
+      await DB.favs.artists.push(id);
+      return artist;
+    }
   }
 
   async removeArtist(id: string) {
@@ -90,6 +113,11 @@ export class FavsService {
     return `Id of Artist #${id} has been removed from favs`;
   }
 
+  async findTrack(id: string) {
+    const track = await DB.favs.tracks.find((item) => item === id);
+    return track;
+  }
+
   async createTrack(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException();
@@ -98,8 +126,12 @@ export class FavsService {
     if (!track) {
       throw new UnprocessableEntityException();
     }
-    await DB.favs.tracks[id];
-    return `Id of Track #${id} has been added to favs`;
+    if (DB.favs.tracks.find((item) => item === id)) {
+      return track;
+    } else {
+      await DB.favs.tracks.push(id);
+      return track;
+    }
   }
 
   async removeTrack(id: string) {
@@ -114,16 +146,26 @@ export class FavsService {
     return `Id of Track #${id} has been removed from favs`;
   }
 
+  async findAlbum(id: string) {
+    const album = await DB.favs.albums.find((item) => item === id);
+    return album;
+  }
+
   async createAlbum(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException();
     }
     const album = await this.albumService.findOne(id);
+    // const album = await DB.albums.find((item) => item.id === id);
     if (!album) {
       throw new UnprocessableEntityException();
     }
-    await DB.favs.albums[id];
-    return `Id of Album #${id} has been added to favs`;
+    if (DB.favs.albums.includes(id)) {
+      return album;
+    } else {
+      await DB.favs.albums.push(id);
+      return album;
+    }
   }
 
   async removeAlbum(id: string) {

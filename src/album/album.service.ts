@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,9 +12,18 @@ import { DB } from 'src/database/db';
 import { Album } from './entities/album.entity';
 import { isUUID } from 'class-validator';
 import { Track } from 'src/track/entities/track.entity';
+import { TrackService } from 'src/track/track.service';
+import { FavsService } from 'src/favs/favs.service';
 
 @Injectable()
 export class AlbumService {
+  constructor(
+    @Inject(forwardRef(() => TrackService))
+    private trackService: TrackService,
+    @Inject(forwardRef(() => FavsService))
+    private favsService: FavsService,
+  ) {}
+
   async create(createAlbumDto: CreateAlbumDto) {
     if (
       !createAlbumDto.artistId ||
@@ -66,26 +77,33 @@ export class AlbumService {
 
     const index = await DB.albums.findIndex((album) => album.id === id);
     if (index === -1) {
+      console.log('index of album not found in remove');
       throw new NotFoundException();
     }
     await DB.albums.splice(index, 1);
 
     //remove id of this albom from favs/albums
-    const indexInFavs = await DB.favs.albums.findIndex((item) => item === id);
-    if (indexInFavs !== -1) {
-      await DB.favs.albums.splice(indexInFavs, 1);
+    const albumInFavs = await this.favsService.findAlbum(id);
+    if (albumInFavs) {
+      await this.favsService.removeAlbum(id);
     }
 
     //change albumId in Tracks on null
-    let trackIndex;
-    const track = await DB.tracks.find((track, index) => {
-      trackIndex = index;
-      return track.albumId === id;
-    });
-    if (!track) {
-      throw new NotFoundException();
+    await this.trackService.removeAlbumtId(id);
+  }
+
+  async removeArtistId(artistId: string) {
+    let albumIndex;
+    if (!isUUID(artistId)) {
+      throw new BadRequestException();
     }
-    const newTrack: Track = { ...track, albumId: null };
-    await DB.tracks.splice(trackIndex, 1, newTrack);
+    const album = await DB.albums.find((track, index) => {
+      albumIndex = index;
+      return track.artistId === artistId;
+    });
+    if (album) {
+      const newAlbum: Album = { ...album, artistId: null };
+      await DB.albums.splice(albumIndex, 1, newAlbum);
+    }
   }
 }

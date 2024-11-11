@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,9 +13,21 @@ import { DB } from 'src/database/db';
 import { isUUID } from 'class-validator';
 import { Track } from 'src/track/entities/track.entity';
 import { Album } from 'src/album/entities/album.entity';
+import { FavsService } from 'src/favs/favs.service';
+import { TrackService } from 'src/track/track.service';
+import { AlbumService } from 'src/album/album.service';
 
 @Injectable()
 export class ArtistService {
+  constructor(
+    @Inject(forwardRef(() => AlbumService))
+    private albumService: AlbumService,
+    @Inject(forwardRef(() => TrackService))
+    private trackService: TrackService,
+    @Inject(forwardRef(() => FavsService))
+    private favsService: FavsService,
+  ) {}
+
   async create(createArtistDto: CreateArtistDto) {
     if (!createArtistDto.grammy || !createArtistDto.name) {
       throw new BadRequestException();
@@ -61,39 +75,24 @@ export class ArtistService {
       throw new BadRequestException();
     }
     const index = await DB.artists.findIndex((artist) => artist.id === id);
+    console.log(index);
     if (index === -1) {
+      console.log('artist not found in delete');
       throw new NotFoundException();
     }
-    await DB.users.splice(index, 1);
+    await DB.artists.splice(index, 1);
 
     //remove id of artist from favs/artists
-    const indexInFavs = await DB.favs.artists.findIndex((item) => item === id);
-    if (indexInFavs !== -1) {
-      await DB.favs.artists.splice(indexInFavs, 1);
+
+    const artistInFavs = await this.favsService.findArtist(id);
+    if (artistInFavs) {
+      await this.favsService.removeArtist(id);
     }
 
     //change artistId in Tracks on null
-    let trackIndex;
-    const track = await DB.tracks.find((track, index) => {
-      trackIndex = index;
-      return track.artistId === id;
-    });
-    if (!track) {
-      throw new NotFoundException();
-    }
-    const newTrack: Track = { ...track, artistId: null };
-    await DB.tracks.splice(trackIndex, 1, newTrack);
+    await this.trackService.removeArtistId(id);
 
     //change artistId in Albums on null
-    let albumIndex;
-    const album = await DB.albums.find((track, index) => {
-      albumIndex = index;
-      return album.artistId === id;
-    });
-    if (!track) {
-      throw new NotFoundException();
-    }
-    const newAlbum: Album = { ...album, artistId: null };
-    await DB.albums.splice(albumIndex, 1, newAlbum);
+    await this.albumService.removeArtistId(id);
   }
 }

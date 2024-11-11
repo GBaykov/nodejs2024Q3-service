@@ -17,5 +17,9 @@ export const DB: DB_Type = {
   artists: [],
   albums: [],
   tracks: [],
-  favs: null,
+  favs: {
+    artists: [],
+    albums: [],
+    tracks: [],
+  },
 };
