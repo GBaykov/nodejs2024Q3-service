@@ -9,6 +9,7 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 import { DB } from 'src/database/db';
 import { Album } from './entities/album.entity';
 import { isUUID } from 'class-validator';
+import { Track } from 'src/track/entities/track.entity';
 
 @Injectable()
 export class AlbumService {
@@ -62,14 +63,29 @@ export class AlbumService {
     if (!isUUID(id)) {
       throw new BadRequestException();
     }
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
+
     const index = await DB.albums.findIndex((album) => album.id === id);
     if (index === -1) {
       throw new NotFoundException();
     }
     await DB.albums.splice(index, 1);
-    return;
+
+    //remove id of this albom from favs/albums
+    const indexInFavs = await DB.favs.albums.findIndex((item) => item === id);
+    if (indexInFavs !== -1) {
+      await DB.favs.albums.splice(indexInFavs, 1);
+    }
+
+    //change albumId in Tracks on null
+    let trackIndex;
+    const track = await DB.tracks.find((track, index) => {
+      trackIndex = index;
+      return track.albumId === id;
+    });
+    if (!track) {
+      throw new NotFoundException();
+    }
+    const newTrack: Track = { ...track, albumId: null };
+    await DB.tracks.splice(trackIndex, 1, newTrack);
   }
 }

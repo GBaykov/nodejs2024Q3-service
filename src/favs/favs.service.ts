@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { CreateFavDto } from './dto/create-fav.dto';
 import { UpdateFavDto } from './dto/update-fav.dto';
 import { v4 as uuid } from 'uuid';
@@ -24,9 +29,6 @@ export class FavsService {
     private readonly albumService: AlbumService,
     private readonly trackService: TrackService,
   ) {}
-  async create(createFavDto: CreateFavDto) {
-    return 'This action adds a new fav';
-  }
 
   async findAll() {
     const resonse = {
@@ -42,7 +44,7 @@ export class FavsService {
       resonse.artists.push(artist);
     }
 
-    for (let i = 0; i < favs.artists.length; i++) {
+    for (let i = 0; i < favs.albums.length; i++) {
       const album = await this.albumService.findOne(favs.albums[i]);
       resonse.albums.push(album);
     }
@@ -58,11 +60,81 @@ export class FavsService {
     return `This action returns a #${id} fav`;
   }
 
-  async update(id: number, updateFavDto: UpdateFavDto) {
-    return `This action updates a #${id} fav`;
+  // async update(id: number, updateFavDto: UpdateFavDto) {
+  //   return `This action updates a #${id} fav`;
+  // }
+
+  async createArtist(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const artist = await this.artistService.findOne(id);
+    if (!artist) {
+      throw new UnprocessableEntityException();
+    }
+    await DB.favs.artists[id];
+    return `Id of Artist #${id} has been added to favs`;
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} fav`;
+  async removeArtist(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const index = await DB.favs.artists.findIndex(
+      (artistId) => artistId === id,
+    );
+    if (index === -1) {
+      throw new NotFoundException();
+    }
+    await DB.favs.artists.splice(index, 1);
+    return `Id of Artist #${id} has been removed from favs`;
+  }
+
+  async createTrack(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const track = await this.trackService.findOne(id);
+    if (!track) {
+      throw new UnprocessableEntityException();
+    }
+    await DB.favs.tracks[id];
+    return `Id of Track #${id} has been added to favs`;
+  }
+
+  async removeTrack(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const index = await DB.favs.tracks.findIndex((trackId) => trackId === id);
+    if (index === -1) {
+      throw new NotFoundException();
+    }
+    await DB.favs.tracks.splice(index, 1);
+    return `Id of Track #${id} has been removed from favs`;
+  }
+
+  async createAlbum(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const album = await this.albumService.findOne(id);
+    if (!album) {
+      throw new UnprocessableEntityException();
+    }
+    await DB.favs.albums[id];
+    return `Id of Album #${id} has been added to favs`;
+  }
+
+  async removeAlbum(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException();
+    }
+    const index = await DB.favs.albums.findIndex((albumId) => albumId === id);
+    if (index === -1) {
+      throw new NotFoundException();
+    }
+    await DB.favs.albums.splice(index, 1);
+    return `Id of Album #${id} has been removed from favs`;
   }
 }

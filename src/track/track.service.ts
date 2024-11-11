@@ -9,6 +9,7 @@ import { Track } from './entities/track.entity';
 import { v4 as uuid } from 'uuid';
 import { DB } from 'src/database/db';
 import { isUUID } from 'class-validator';
+import { FavsService } from 'src/favs/favs.service';
 
 @Injectable()
 export class TrackService {
@@ -68,5 +69,11 @@ export class TrackService {
       throw new NotFoundException();
     }
     await DB.tracks.splice(index, 1);
+
+    //remove id of track from favs/tracks
+    const indexInFavs = await DB.favs.tracks.findIndex((item) => item === id);
+    if (indexInFavs !== -1) {
+      await DB.favs.tracks.splice(indexInFavs, 1);
+    }
   }
 }
