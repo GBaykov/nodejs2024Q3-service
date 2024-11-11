@@ -29,9 +29,9 @@ export class ArtistService {
   ) {}
 
   async create(createArtistDto: CreateArtistDto) {
-    if (!createArtistDto.grammy || !createArtistDto.name) {
-      throw new BadRequestException();
-    }
+    // if (!createArtistDto.grammy || !createArtistDto.name) {
+    //   throw new BadRequestException();
+    // }
     const artist: Artist = { ...createArtistDto, id: uuid() };
     await DB.artists.push(artist);
     return artist;

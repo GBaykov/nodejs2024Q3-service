@@ -46,7 +46,11 @@ export class UserService {
 
   async update(id: string, updatePasswordDto: UpdatePasswordDto) {
     let userIndex;
-    if (!isUUID(id)) {
+    if (
+      !isUUID(id) ||
+      !updatePasswordDto.newPassword ||
+      !updatePasswordDto.oldPassword
+    ) {
       throw new BadRequestException();
     }
     const user = await DB.users.find((user, index) => {

@@ -48,23 +48,14 @@ export class FavsService {
       if (favs[key].length > 0) {
         for (let i = 0; i < favs.artists.length; i++) {
           const artist = await this.artistService.findOne(favs.artists[i]);
-          // const artist = await DB.artists.find(
-          //   (item) => item.id === favs.artists[i],
-          // );
           resonse.artists.push(artist);
         }
         for (let i = 0; i < favs.albums.length; i++) {
           const album = await this.albumService.findOne(favs.albums[i]);
-          // const album = await DB.albums.find(
-          //   (item) => item.id === favs.albums[i],
-          // );
           resonse.albums.push(album);
         }
         for (let i = 0; i < favs.tracks.length; i++) {
           const track = await this.trackService.findOne(favs.tracks[i]);
-          // const track = await DB.tracks.find(
-          //   (item) => item.id === favs.tracks[i],
-          // );
           resonse.tracks.push(track);
         }
       }
@@ -73,36 +64,32 @@ export class FavsService {
     return resonse;
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} fav`;
-  }
-
   async findArtist(id: string) {
     const artist = await DB.favs.artists.find((item) => item === id);
     return artist;
   }
 
   async createArtist(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
+    // if (!isUUID(id)) {
+    //   throw new BadRequestException();
+    // }
     // const artist = await this.artistService.findOne(id);
     const artist = await this.artistService.findOne(id);
     if (!artist) {
       throw new UnprocessableEntityException();
     }
-    if (DB.favs.artists.find((item) => item === id)) {
-      return;
-    } else {
+    if (!DB.favs.artists.includes(id)) {
       await DB.favs.artists.push(id);
       return artist;
+    } else {
+      return;
     }
   }
 
   async removeArtist(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
+    // if (!isUUID(id)) {
+    //   throw new BadRequestException();
+    // }
     const index = await DB.favs.artists.findIndex(
       (artistId) => artistId === id,
     );
@@ -110,7 +97,6 @@ export class FavsService {
       throw new NotFoundException();
     }
     await DB.favs.artists.splice(index, 1);
-    return `Id of Artist #${id} has been removed from favs`;
   }
 
   async findTrack(id: string) {
@@ -119,31 +105,30 @@ export class FavsService {
   }
 
   async createTrack(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
+    // if (!isUUID(id)) {
+    //   throw new BadRequestException();
+    // }
     const track = await this.trackService.findOne(id);
     if (!track) {
       throw new UnprocessableEntityException();
     }
-    if (DB.favs.tracks.find((item) => item === id)) {
-      return track;
-    } else {
+    if (DB.favs.tracks.includes(id)) {
       await DB.favs.tracks.push(id);
       return track;
+    } else {
+      return;
     }
   }
 
   async removeTrack(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
+    // if (!isUUID(id)) {
+    //   throw new BadRequestException();
+    // }
     const index = await DB.favs.tracks.findIndex((trackId) => trackId === id);
     if (index === -1) {
       throw new NotFoundException();
     }
     await DB.favs.tracks.splice(index, 1);
-    return `Id of Track #${id} has been removed from favs`;
   }
 
   async findAlbum(id: string) {
@@ -152,16 +137,16 @@ export class FavsService {
   }
 
   async createAlbum(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
+    // if (!isUUID(id)) {
+    //   throw new BadRequestException();
+    // }
     const album = await this.albumService.findOne(id);
     // const album = await DB.albums.find((item) => item.id === id);
     if (!album) {
       throw new UnprocessableEntityException();
     }
     if (DB.favs.albums.includes(id)) {
-      return album;
+      return;
     } else {
       await DB.favs.albums.push(id);
       return album;
@@ -169,14 +154,13 @@ export class FavsService {
   }
 
   async removeAlbum(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
+    // if (!isUUID(id)) {
+    //   throw new BadRequestException();
+    // }
     const index = await DB.favs.albums.findIndex((albumId) => albumId === id);
     if (index === -1) {
       throw new NotFoundException();
     }
     await DB.favs.albums.splice(index, 1);
-    return `Id of Album #${id} has been removed from favs`;
   }
 }

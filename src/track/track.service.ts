@@ -21,14 +21,14 @@ export class TrackService {
   ) {}
 
   async create(createTrackDto: CreateTrackDto) {
-    if (
-      !createTrackDto.albumId ||
-      !createTrackDto.artistId ||
-      !createTrackDto.duration ||
-      !createTrackDto.name
-    ) {
-      throw new BadRequestException();
-    }
+    // if (
+    //   !createTrackDto.albumId ||
+    //   !createTrackDto.artistId ||
+    //   !createTrackDto.duration ||
+    //   !createTrackDto.name
+    // ) {
+    //   throw new BadRequestException();
+    // }
     const track: Track = { ...createTrackDto, id: uuid() };
     await DB.tracks.push(track);
     return track;

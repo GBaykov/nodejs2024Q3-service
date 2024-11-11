@@ -26,7 +26,7 @@ export class AlbumService {
 
   async create(createAlbumDto: CreateAlbumDto) {
     if (
-      !createAlbumDto.artistId ||
+      // !createAlbumDto.artistId ||
       !createAlbumDto.name ||
       !createAlbumDto.year
     ) {
