@@ -60,6 +60,9 @@ export class TrackService {
       return track.id === id;
     });
     if (!track) {
+      console.log(id);
+      console.log(track);
+      console.log(DB.tracks);
       throw new NotFoundException();
     }
     const newTrack: Track = { ...track, ...updateTrackDto };
