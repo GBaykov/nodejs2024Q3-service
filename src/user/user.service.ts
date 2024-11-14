@@ -10,77 +10,90 @@ import { UpdatePasswordDto } from './dto/update-user.dto';
 import { DB } from 'src/database/db';
 import { isUUID } from 'class-validator';
 import { User } from './entities/user.entity';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class UserService {
+  constructor(private dataSource: DataSource) {}
+  private usersRepository = this.dataSource.getRepository(User);
+
   async create(createUserDto: CreateUserDto) {
-    if (!createUserDto.login || !createUserDto.password) {
-      throw new BadRequestException();
-    }
-    const user: User = {
+    // if (!createUserDto.login || !createUserDto.password) {
+    //   throw new BadRequestException();
+    // }
+
+    // const user: User = {
+    //   ...createUserDto,
+    //   id: uuid(),
+    //   version: 1,
+    //   createdAt: new Date().getTime(),
+    //   updatedAt: new Date().getTime(),
+    // };
+    // await DB.users.push(user);
+    const user = await this.usersRepository.save({
       ...createUserDto,
-      id: uuid(),
       version: 1,
-      createdAt: new Date().getTime(),
-      updatedAt: new Date().getTime(),
-    };
-    await DB.users.push(user);
+    });
+
     return User.toResponce(user);
   }
 
   async findAll() {
-    const users = await DB.users;
-    return users.map((user) => User.toResponce(user));
+    return await this.usersRepository.find();
+    // const users = await DB.users;
+    // return users.map((user) => User.toResponce(user));
   }
 
   async findOne(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
-    const user = await DB.users.find((user) => user.id === id);
-    if (!user) {
-      throw new NotFoundException();
-    }
+    const user = await this.usersRepository.findOneBy({ id });
+    // if (!user) {
+    //   throw new NotFoundException();
+    // }
+    if (!user) return undefined;
     return User.toResponce(user);
   }
 
   async update(id: string, updatePasswordDto: UpdatePasswordDto) {
-    let userIndex;
-    if (
-      !isUUID(id) ||
-      !updatePasswordDto.newPassword ||
-      !updatePasswordDto.oldPassword
-    ) {
-      throw new BadRequestException();
-    }
-    const user = await DB.users.find((user, index) => {
-      userIndex = index;
-      return user.id === id;
-    });
-    if (!user) {
-      throw new NotFoundException();
-    }
+    // let userIndex;
+    // if (
+    //   !isUUID(id) ||
+    //   !updatePasswordDto.newPassword ||
+    //   !updatePasswordDto.oldPassword
+    // ) {
+    //   throw new BadRequestException();
+    // }
+    let user = await this.usersRepository.findOneBy({ id });
+    if (!user) return undefined;
+    // const user = await DB.users.find((user, index) => {
+    //   userIndex = index;
+    //   return user.id === id;
+    // });
+    // if (!user) {
+    //   throw new NotFoundException();
+    // }
     if (user.password !== updatePasswordDto.oldPassword) {
       throw new ForbiddenException();
     }
-    const newUser = {
+    user = {
       ...user,
       password: updatePasswordDto.newPassword,
       version: user.version + 1,
-      updatedAt: new Date().getTime(),
     };
-    await DB.users.splice(userIndex, 1, newUser);
-    return User.toResponce(newUser);
+    // await DB.users.splice(userIndex, 1, newUser);
+    await this.usersRepository.save(user);
+    return User.toResponce(user);
   }
 
   async remove(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException();
-    }
-    const userIndex = await DB.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) {
-      throw new NotFoundException();
-    }
-    DB.users.splice(userIndex, 1);
+    // if (!isUUID(id)) {
+    //   throw new BadRequestException();
+    // }
+    // const userIndex = await DB.users.findIndex((user) => user.id === id);
+    // if (userIndex === -1) {
+    //   throw new NotFoundException();
+    // }
+    // DB.users.splice(userIndex, 1);
+    const user = await this.findOne(id);
+    return await this.usersRepository.softRemove(user);
   }
 }
