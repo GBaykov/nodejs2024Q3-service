@@ -1,5 +1,14 @@
 import { Exclude } from 'class-transformer';
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Album } from 'src/album/entities/album.entity';
+import { Artist } from 'src/artist/entities/artist.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  JoinTable,
+} from 'typeorm';
 
 @Entity()
 export class Track {
@@ -12,9 +21,12 @@ export class Track {
   @Column()
   duration: number; // integer number
 
-  @Column()
+  @ManyToOne((_type) => Artist, { onDelete: 'CASCADE' })
+  @JoinTable()
   artistId: string | null; // refers to Artist
 
+  @ManyToOne((_type) => Album, { onDelete: 'CASCADE' })
+  @JoinTable()
   @Column()
   albumId: string | null; // refers to Album
 

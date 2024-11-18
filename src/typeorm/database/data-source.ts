@@ -8,6 +8,7 @@ export const dataSourceOptions: DataSourceOptions = {
   password: 'password',
   database: 'postgres',
   entities: ['src/**/*.entity{.js,.ts}'],
+  migrations: ['src/**/migrations/*.js'],
 };
 
 export default new DataSource(dataSourceOptions);

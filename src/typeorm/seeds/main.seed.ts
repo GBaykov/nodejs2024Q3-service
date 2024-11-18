@@ -2,9 +2,17 @@ import { DataSource } from 'typeorm';
 import { dataSourceOptions } from '../database/data-source';
 import { User } from 'src/user/entities/user.entity';
 import { version } from 'os';
+import { Track } from 'src/track/entities/track.entity';
+import { Album } from 'src/album/entities/album.entity';
+import { Artist } from 'src/artist/entities/artist.entity';
+import { Fav } from 'src/favs/entities/fav.entity';
 
 const dataSource = new DataSource(dataSourceOptions);
 const userRepository = dataSource.getRepository(User);
+const tracksRepository = dataSource.getRepository(Track);
+const albumsRepository = dataSource.getRepository(Album);
+const artistsRepository = dataSource.getRepository(Artist);
+const favsRepository = dataSource.getRepository(Fav);
 
 async function connect() {
   try {
