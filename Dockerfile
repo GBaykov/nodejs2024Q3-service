@@ -1,4 +1,4 @@
-FROM node:22.11-alpine3.19
+FROM node:22.11-alpine
 
 EXPOSE ${PORT}
 
