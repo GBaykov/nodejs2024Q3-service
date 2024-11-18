@@ -1,1 +1,3 @@
-FROM postgres:17.1-alpine3.20
+FROM  postgres:17.1-alpine
+
+EXPOSE 5433

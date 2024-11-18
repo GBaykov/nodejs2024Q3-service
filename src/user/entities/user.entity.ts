@@ -1,3 +1,5 @@
+import { Transform } from 'class-transformer';
+import { IsNumber } from 'class-validator';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -20,9 +22,13 @@ export class User {
   @Column()
   version: number; // integer number, increments on update
 
+  @IsNumber()
+  @Transform(({ value }) => new Date(value).getTime())
   @CreateDateColumn()
   createdAt: number; // timestamp of creation
 
+  @IsNumber()
+  @Transform(({ value }) => new Date(value).getTime())
   @UpdateDateColumn()
   updatedAt: number;
 

@@ -11,10 +11,13 @@ import { DB } from 'src/database/db';
 import { isUUID } from 'class-validator';
 import { User } from './entities/user.entity';
 import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UserService {
   constructor(private dataSource: DataSource) {}
+
+  @InjectRepository(User)
   private usersRepository = this.dataSource.getRepository(User);
 
   async create(createUserDto: CreateUserDto) {
@@ -46,10 +49,10 @@ export class UserService {
 
   async findOne(id: string) {
     const user = await this.usersRepository.findOneBy({ id });
-    // if (!user) {
-    //   throw new NotFoundException();
-    // }
-    if (!user) return undefined;
+    if (!user) {
+      throw new NotFoundException();
+    }
+    // if (!user) return undefined;
     return User.toResponce(user);
   }
 
@@ -63,14 +66,15 @@ export class UserService {
     //   throw new BadRequestException();
     // }
     let user = await this.usersRepository.findOneBy({ id });
-    if (!user) return undefined;
+    // if (!user) return undefined;
+
     // const user = await DB.users.find((user, index) => {
     //   userIndex = index;
     //   return user.id === id;
     // });
-    // if (!user) {
-    //   throw new NotFoundException();
-    // }
+    if (!user) {
+      throw new NotFoundException();
+    }
     if (user.password !== updatePasswordDto.oldPassword) {
       throw new ForbiddenException();
     }
@@ -94,6 +98,9 @@ export class UserService {
     // }
     // DB.users.splice(userIndex, 1);
     const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException();
+    }
     return await this.usersRepository.softRemove(user);
   }
 }

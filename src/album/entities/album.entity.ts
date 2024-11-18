@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
@@ -13,4 +14,7 @@ export class Album {
 
   @Column()
   artistId: string | null;
+
+  @Exclude()
+  favorite: boolean;
 }

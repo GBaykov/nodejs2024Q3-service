@@ -13,6 +13,8 @@ import { Album } from './entities/album.entity';
 import { isUUID } from 'class-validator';
 import { TrackService } from 'src/track/track.service';
 import { FavsService } from 'src/favs/favs.service';
+import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AlbumService {
@@ -21,7 +23,11 @@ export class AlbumService {
     private trackService: TrackService,
     @Inject(forwardRef(() => FavsService))
     private favsService: FavsService,
+    private dataSource: DataSource,
   ) {}
+
+  @InjectRepository(Album)
+  private albumsRepository = this.dataSource.getRepository(Album);
 
   async create(createAlbumDto: CreateAlbumDto) {
     if (
@@ -31,21 +37,21 @@ export class AlbumService {
     ) {
       throw new BadRequestException();
     }
-    const album: Album = { ...createAlbumDto, id: uuid() };
-    await DB.albums.push(album);
+    const album: Album = await this.albumsRepository.save({
+      ...createAlbumDto,
+    });
     return album;
   }
 
   async findAll() {
-    const albums = await DB.albums;
-    return albums;
+    return await this.albumsRepository.find();
   }
 
   async findOne(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException();
     }
-    const album = await DB.albums.find((album) => album.id === id);
+    const album = await this.albumsRepository.findOneBy({ id });
     if (!album) {
       throw new NotFoundException();
     }
@@ -53,56 +59,63 @@ export class AlbumService {
   }
 
   async update(id: string, updateAlbumDto: UpdateAlbumDto) {
-    let albumIndex;
     if (!isUUID(id)) {
       throw new BadRequestException();
     }
-    const album = await DB.albums.find((album, index) => {
-      albumIndex = index;
-      return album.id === id;
-    });
+    let album = await this.albumsRepository.findOneBy({ id });
     if (!album) {
       throw new NotFoundException();
     }
-    const newAlbum = { ...album, ...updateAlbumDto };
-    await DB.albums.splice(albumIndex, 1, newAlbum);
-    return newAlbum;
+    album = { ...album, ...updateAlbumDto };
+    await this.albumsRepository.save(album);
+    return album;
+
+    // let albumIndex;
+
+    // const album = await DB.albums.find((album, index) => {
+    //   albumIndex = index;
+    //   return album.id === id;
+    // });
+
+    // const newAlbum = { ...album, ...updateAlbumDto };
+    // await DB.albums.splice(albumIndex, 1, newAlbum);
+    // return newAlbum;
   }
 
   async remove(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException();
     }
+    return Boolean((await this.albumsRepository.delete(id)).affected);
+    // const index = await DB.albums.findIndex((album) => album.id === id);
+    // if (index === -1) {
+    //   console.log('index of album not found in remove');
+    //   throw new NotFoundException();
+    // }
+    // await DB.albums.splice(index, 1);
 
-    const index = await DB.albums.findIndex((album) => album.id === id);
-    if (index === -1) {
-      console.log('index of album not found in remove');
-      throw new NotFoundException();
-    }
-    await DB.albums.splice(index, 1);
+    // //remove id of this albom from favs/albums
+    // const albumInFavs = await this.favsService.findAlbum(id);
+    // if (albumInFavs) {
+    //   await this.favsService.removeAlbum(id);
+    // }
 
-    //remove id of this albom from favs/albums
-    const albumInFavs = await this.favsService.findAlbum(id);
-    if (albumInFavs) {
-      await this.favsService.removeAlbum(id);
-    }
-
-    //change albumId in Tracks on null
-    await this.trackService.removeAlbumtId(id);
+    // //change albumId in Tracks on null
+    // await this.trackService.removeAlbumtId(id);
   }
 
-  async removeArtistId(artistId: string) {
-    let albumIndex;
-    if (!isUUID(artistId)) {
-      throw new BadRequestException();
-    }
-    const album = await DB.albums.find((track, index) => {
-      albumIndex = index;
-      return track.artistId === artistId;
-    });
-    if (album) {
-      const newAlbum: Album = { ...album, artistId: null };
-      await DB.albums.splice(albumIndex, 1, newAlbum);
-    }
-  }
+  // async removeArtistId(artistId: string) {
+  //   let albumIndex;
+  //   if (!isUUID(artistId)) {
+  //     throw new BadRequestException();
+  //   }
+  //   const album = await DB.albums.find((track, index) => {
+  //     albumIndex = index;
+  //     return track.artistId === artistId;
+  //   });
+  //   if (album) {
+  //     const newAlbum: Album = { ...album, artistId: null };
+  //     await DB.albums.splice(albumIndex, 1, newAlbum);
+  //   }
+  // }
 }
