@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { AllExceptionsFilter } from './filters/exeptions.filter';
+import { PORT } from './common/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,7 +21,7 @@ async function bootstrap() {
       }
     })(),
   );
-  await app.listen(4000);
+  await app.listen(PORT);
 
   process.on('unhandledRejection', (reason, promise) => {
     console.error(`Unhandled Rejection at: ${promise}: ${reason}`);

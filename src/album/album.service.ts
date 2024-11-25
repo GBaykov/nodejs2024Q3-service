@@ -5,10 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { v4 as uuid } from 'uuid';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { DB } from 'src/database/db';
 import { Album } from './entities/album.entity';
 import { isUUID } from 'class-validator';
 import { TrackService } from 'src/track/track.service';
