@@ -9,6 +9,7 @@ import { FavsModule } from './favs/favs.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './typeorm/database/data-source';
 import { AuthModule } from './auth/auth.module';
+import { JwtStrategy } from './auth/jwt.strategy';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRoot(dataSourceOptions),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, JwtStrategy],
 })
 export class AppModule {}
