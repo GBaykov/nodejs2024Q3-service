@@ -1,9 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'jsonwebtoken';
+import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from 'src/user/dto/login-user.dto';
 
 import { UserService } from 'src/user/user.service';
+import { LoginDto } from './dto/login.dto';
+import { SignupDto } from './dto/signup.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,19 +33,27 @@ export class AuthService {
     throw new NotFoundException(`${user.password}not equal ${pass}`);
     return null;
   }
-
-  async login(user: LoginUserDto) {
-    const payload = {
-      password: user.password,
-
-      login: user.login,
-    };
-
-    return {
-      token: this.jwtService.sign(payload),
-    };
+  async signup(signupDto: SignupDto) {
+    const hashedPassword = await bcrypt.hash(
+      signupDto.password,
+      Number(process.env.CRYPT_SALT),
+    );
+    return this.usersService.create({
+      ...signupDto,
+      password: hashedPassword,
+    });
   }
 
+  async login(loginDto: LoginDto) {
+    const user = await this.usersService.findByLogin(loginDto.login);
+    if (user && (await bcrypt.compare(loginDto.password, user.password))) {
+      const payload = { userId: user.id, login: user.login };
+      const accessToken = this.jwtService.sign(payload);
+      return { accessToken };
+    } else {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+  }
   async createAdmin() {
     const isAdmin = await this.usersService.findByLogin('admin');
     if (!isAdmin) {
